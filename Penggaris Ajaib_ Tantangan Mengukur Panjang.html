@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Penggaris Ajaib: Tantangan Mengukur Panjang</title>
+<style>
+:root{--bg:#e9f7ff;--card:#fff;--ink:#23395b;--pri:#ff8a3d;--ok:#2fb36d;--bad:#e5484d;--line:#bfe3f5}
+@media (prefers-color-scheme:dark){:root{--bg:#14263a;--card:#1d3350;--ink:#eaf4ff;--line:#35597f}}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:980px;margin:0 auto;padding:14px}
+h1{font-size:clamp(22px,4vw,34px);margin:6px 0;text-align:center;color:var(--pri)}
+.card{background:var(--card);border-radius:22px;padding:16px;box-shadow:0 6px 0 var(--line)}
+.bar{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:bold;margin-bottom:8px}
+.pill{background:var(--card);border:3px solid var(--line);border-radius:999px;padding:4px 14px}
+.prog{height:12px;background:var(--line);border-radius:9px;overflow:hidden;margin-bottom:10px}
+.prog i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.scroll{overflow-x:auto}
+svg{display:block;width:100%;min-width:680px;height:auto}
+.q{font-size:clamp(18px,3vw,24px);font-weight:bold;text-align:center;margin:10px 0}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:560px){.opts{grid-template-columns:repeat(2,1fr)}}
+button{font:inherit;cursor:pointer;border:0}
+.opt{background:#fff;color:#23395b;border:4px solid var(--line);border-radius:16px;padding:14px 4px;font-size:clamp(20px,3vw,26px);font-weight:bold;transition:transform .1s}
+.opt:hover:not(:disabled){transform:translateY(-3px)}
+.opt.sel{border-color:var(--pri);background:#fff1e5}
+.opt.right{border-color:var(--ok);background:#dff7ea}
+.opt.wrong{border-color:var(--bad);background:#fde5e6;opacity:.6}
+.opt:disabled{cursor:default}
+.act{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.btn{background:var(--pri);color:#fff;border-radius:16px;padding:12px 28px;font-size:20px;font-weight:bold;box-shadow:0 5px 0 #c4631f}
+.btn:disabled{background:#b8c4cf;box-shadow:0 5px 0 #8e9aa6;cursor:default}
+.btn.g{background:var(--ok);box-shadow:0 5px 0 #1f8450}
+.fb{min-height:34px;text-align:center;font-weight:bold;font-size:clamp(16px,2.6vw,21px);margin-top:10px}
+.fb.ok{color:var(--ok)}.fb.no{color:var(--bad)}
+.stage{background:#fff3c4;color:#6b4e00;border-radius:12px;padding:4px 12px;font-size:15px}
+.center{text-align:center}
+.big{font-size:56px;font-weight:bold;color:var(--pri)}
+ol{text-align:left;display:inline-block;font-size:18px;line-height:1.6}
+.pop{animation:pop .6s}
+@keyframes pop{0%{transform:scale(.8)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.star{position:fixed;font-size:30px;pointer-events:none;animation:fly 1.2s ease-out forwards;z-index:9}
+@keyframes fly{from{opacity:1;transform:translateY(0) rotate(0)}to{opacity:0;transform:translateY(-160px) rotate(360deg)}}
+.hide{display:none}
+</style></head><body><div class="wrap">
+<h1>📏 Penggaris Ajaib: Tantangan Mengukur Panjang</h1>
+
+<div id="start" class="card center">
+ <svg viewBox="0 0 700 150" style="min-width:0;max-width:640px;margin:auto" aria-hidden="true" id="art"></svg>
+ <h2>Selamat datang, Pengukur Cilik!</h2>
+ <ol>
+  <li>Lihat benda di atas penggaris.</li>
+  <li>Cari angka di ujung awal dan ujung akhir benda.</li>
+  <li>Panjang benda = angka akhir − angka awal.</li>
+  <li>Pilih jawaban, lalu tekan <b>Periksa</b>.</li>
+ </ol>
+ <p>Ada 10 soal. Jawaban benar pada percobaan pertama bernilai 10 poin.</p>
+ <button class="btn" id="go">Mulai Bermain</button>
+</div>
+
+<div id="game" class="card hide">
+ <div class="bar"><span class="pill" id="no">Soal 1 dari 10</span><span class="stage" id="stg"></span><span class="pill">⭐ Skor: <span id="sc">0</span></span></div>
+ <div class="prog"><i id="pr"></i></div>
+ <div class="scroll"><svg id="svg" viewBox="0 0 900 250" role="img" aria-label="Penggaris dan benda yang diukur"></svg></div>
+ <div class="q" id="q"></div>
+ <div class="opts" id="opts"></div>
+ <div class="fb" id="fb" aria-live="polite"></div>
+ <div class="act"><button class="btn" id="chk" disabled>Periksa</button><button class="btn g hide" id="nx">Lanjut</button></div>
+</div>
+
+<div id="end" class="card center hide">
+ <h2>Permainan Selesai! 🎉</h2>
+ <div class="big"><span id="fs">0</span> poin</div>
+ <p style="font-size:20px">Jawaban benar: <b id="fc">0</b> dari 10 soal</p>
+ <p style="font-size:20px" id="msg"></p>
+ <button class="btn" id="again">Main Lagi</button>
+</div>
+</div>
+<script>
+const U=40,X0=50,RY=135,NS="http://www.w3.org/2000/svg";
+const Q=[
+ {o:"pensil",s:0,e:8,st:1},{o:"penghapus",s:0,e:4,st:1},{o:"krayon",s:0,e:6,st:1},
+ {o:"spidol",s:0,e:12,st:2},{o:"buku",s:0,e:18,st:2},{o:"stik es krim",s:0,e:11,st:2},
+ {o:"krayon",s:3,e:9,st:3},{o:"pensil",s:2,e:10,st:3},
+ {o:"pensil",s:2,e:9,st:4,claim:"Dina"},{o:"stik es krim",s:5,e:16,st:4,claim:"Budi"}];
+const STG={1:"Tahap 1: Mulai dari 0",2:"Tahap 2: Panjang berbeda",3:"Tahap 3: Mulai bukan dari 0",4:"Tahap 4: Temukan kesalahan"};
+const $=id=>document.getElementById(id);
+function el(n,a,p,t){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;p&&p.appendChild(e);return e}
+// Menggambar benda: tepi kiri tepat di x, tepi kanan tepat di x+w, dasar di y
+function drawObj(g,t,x,w,y){
+ if(t=="pensil"){const h=30,t0=Math.min(26,w*.3);
+  el("rect",{x,y:y-h,width:14,height:h,rx:4,fill:"#f48fb1"},g);
+  el("rect",{x:x+14,y:y-h,width:8,height:h,fill:"#b0bec5"},g);
+  el("rect",{x:x+22,y:y-h,width:w-22-t0,height:h,fill:"#ffd23f"},g);
+  el("path",{d:`M${x+w-t0} ${y-h}L${x+w} ${y-h/2}L${x+w-t0} ${y}Z`,fill:"#f6d6a8"},g);
+  el("path",{d:`M${x+w-9} ${y-h/2-4}L${x+w} ${y-h/2}L${x+w-9} ${y-h/2+4}Z`,fill:"#333"},g);
+  el("rect",{x:x+22,y:y-h/2-2,width:w-22-t0,height:4,fill:"#e0a800"},g);
+ }else if(t=="penghapus"){const h=44;
+  el("rect",{x,y:y-h,width:w,height:h,rx:8,fill:"#fff",stroke:"#4aa3df","stroke-width":0},g);
+  el("path",{d:`M${x+w*.55} ${y-h}H${x+w-8}Q${x+w} ${y-h} ${x+w} ${y-h+8}V${y-8}Q${x+w} ${y} ${x+w-8} ${y}H${x+w*.55}Z`,fill:"#4aa3df"},g);
+  el("rect",{x,y:y-h,width:w*.55,height:h,rx:8,fill:"#f2f2f2"},g);
+  el("rect",{x:x+w*.4,y:y-h,width:w*.15,height:h,fill:"#f2f2f2"},g);
+  el("text",{x:x+w*.28,y:y-h/2+6,"text-anchor":"middle","font-size":16,fill:"#4aa3df","font-weight":"bold"},g,"★");
+ }else if(t=="krayon"){const h=26,t0=22;
+  el("rect",{x,y:y-h,width:w-t0,height:h,rx:3,fill:"#e5484d"},g);
+  el("rect",{x:x+12,y:y-h,width:w-t0-30,height:h,fill:"#fff4d6"},g);
+  el("rect",{x:x+12,y:y-h+7,width:w-t0-30,height:3,fill:"#e5484d"},g);
+  el("rect",{x:x+12,y:y-h+16,width:w-t0-30,height:3,fill:"#e5484d"},g);
+  el("path",{d:`M${x+w-t0} ${y-h}L${x+w} ${y-h/2}L${x+w-t0} ${y}Z`,fill:"#c0272d"},g);
+ }else if(t=="spidol"){const h=30,c=w*.22;
+  el("rect",{x,y:y-h,width:c,height:h,rx:5,fill:"#1b8f55"},g);
+  el("rect",{x:x+c,y:y-h+3,width:w-c-18,height:h-6,fill:"#fff"},g);
+  el("rect",{x:x+c+10,y:y-h+3,width:w*.3,height:h-6,fill:"#2fb36d"},g);
+  el("path",{d:`M${x+w-18} ${y-h+6}L${x+w} ${y-h/2}L${x+w-18} ${y-6}Z`,fill:"#1b8f55"},g);
+ }else if(t=="buku"){const h=66;
+  el("rect",{x,y:y-h,width:w,height:h,rx:6,fill:"#6c5ce7"},g);
+  el("rect",{x:x+w-10,y:y-h+4,width:6,height:h-8,fill:"#fff"},g);
+  el("rect",{x:x+16,y:y-h+14,width:w-50,height:20,rx:5,fill:"#ffd23f"},g);
+  el("text",{x:x+w/2-10,y:y-h+30,"text-anchor":"middle","font-size":15,fill:"#4a3b00","font-weight":"bold"},g,"BUKU");
+  el("rect",{x:x+16,y:y-h+42,width:w-70,height:5,rx:2,fill:"#cfc8ff"},g);
+ }else{const h=26;
+  el("rect",{x,y:y-h,width:w,height:h,rx:13,fill:"#e0b070"},g);
+  el("rect",{x:x+6,y:y-h+6,width:w-12,height:3,rx:1,fill:"#c8955a"},g);
+  el("rect",{x:x+6,y:y-h+16,width:w-12,height:3,rx:1,fill:"#c8955a"},g);
+ }
+}
+function ruler(svg,q,hint){
+ svg.innerHTML="";
+ const g=el("g",{},svg);
+ el("rect",{x:X0,y:RY,width:20*U,height:90,rx:0,fill:"#ffe27a",stroke:"#d9a400","stroke-width":2},g);
+ for(let i=0;i<=40;i++){const x=X0+i*U/2,big=i%2==0;
+  el("line",{x1:x,y1:RY,x2:x,y2:RY+(big?34:20),stroke:"#5b4600","stroke-width":big?3:1.5},g);
+  if(big)el("text",{x,y:RY+66,"text-anchor":"middle","font-size":24,"font-weight":"bold",fill:"#3d2f00"},g,i/2)}
+ el("text",{x:X0+20*U-8,y:RY+86,"text-anchor":"end","font-size":15,fill:"#6b4e00"},g,"cm");
+ const ob=el("g",{},svg);
+ drawObj(ob,q.o.replace("stik es krim","stik"),X0+q.s*U,(q.e-q.s)*U,RY);
+ if(hint)[q.s,q.e].forEach(n=>{el("line",{x1:X0+n*U,y1:RY-80,x2:X0+n*U,y2:RY+90,stroke:"#e5484d","stroke-width":2.5,"stroke-dasharray":"6 5"},svg)})
+}
+let i=0,score=0,right=0,tries=0,pick=null,done=false,opts=[];
+function shuffle(a){for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+function makeOpts(q){const ans=q.e-q.s,set=new Set([ans]);
+ if(q.s>0)set.add(q.e);
+ if(q.s>0&&q.s!=ans)set.add(q.s);
+ for(const d of shuffle([1,-1,2,-2,3])){if(set.size>=4)break;const v=ans+d;if(v>0&&v<=20)set.add(v)}
+ return shuffle([...set].slice(0,4).includes(ans)?[...set].slice(0,4):[...set].slice(0,3).concat(ans))}
+function load(){
+ const q=Q[i];tries=0;pick=null;done=false;
+ $("no").textContent=`Soal ${i+1} dari 10`;$("stg").textContent=STG[q.st];$("sc").textContent=score;
+ $("pr").style.width=(i/10*100)+"%";
+ ruler($("svg"),q,false);
+ const nm=q.o;
+ $("q").textContent=q.claim?`${q.claim} berkata panjang ${nm} ini ${q.e} cm. Berapa panjang ${nm} yang benar?`:`Berapa panjang ${nm} ini?`;
+ opts=makeOpts(q);$("opts").innerHTML="";
+ opts.forEach(v=>{const b=document.createElement("button");b.className="opt";b.textContent=v+" cm";b.dataset.v=v;
+  b.onclick=()=>{if(done)return;pick=v;[...$("opts").children].forEach(c=>c.classList.remove("sel"));b.classList.add("sel");$("chk").disabled=false;$("fb").textContent="";$("fb").className="fb"};
+  $("opts").appendChild(b)});
+ $("fb").textContent="";$("fb").className="fb";$("chk").disabled=true;$("chk").classList.remove("hide");$("nx").classList.add("hide");
+ $("nx").textContent=i==9?"Lihat Hasil":"Lanjut";
+}
+function stars(){for(let k=0;k<10;k++){const s=document.createElement("div");s.className="star";s.textContent=["⭐","🌟","✨"][k%3];s.style.left=(20+Math.random()*60)+"vw";s.style.top=(40+Math.random()*30)+"vh";document.body.appendChild(s);setTimeout(()=>s.remove(),1300)}}
+$("chk").onclick=()=>{
+ if(pick==null||done)return;const q=Q[i],ans=q.e-q.s,btn=[...$("opts").children].find(c=>+c.dataset.v==pick);
+ if(pick==ans){
+  if(tries==0){score+=10;right++}
+  done=true;btn.classList.remove("sel");btn.classList.add("right");[...$("opts").children].forEach(c=>c.disabled=true);
+  $("sc").textContent=score;$("fb").className="fb ok pop";
+  $("fb").textContent=`Hebat! Jawabanmu benar! ${q.e} − ${q.s} = ${ans} cm`+(tries?" (benar pada percobaan ulang, tanpa poin)":" (+10 poin)");
+  ruler($("svg"),q,true);stars();$("chk").classList.add("hide");$("nx").classList.remove("hide");
+ }else{
+  tries++;btn.classList.remove("sel");btn.classList.add("wrong");btn.disabled=true;pick=null;$("chk").disabled=true;
+  $("fb").className="fb no pop";$("fb").textContent="Belum tepat. Perhatikan kembali posisi ujung benda pada penggaris!";
+  if(tries>=2)ruler($("svg"),q,true);
+ }};
+$("nx").onclick=()=>{i++;if(i>=10){finish()}else load()};
+function finish(){$("game").classList.add("hide");$("end").classList.remove("hide");
+ $("fs").textContent=score;$("fc").textContent=right;
+ $("msg").textContent=right==10?"Luar biasa! Kamu juara mengukur!":right>=7?"Bagus sekali! Sedikit lagi sempurna!":right>=4?"Kerja bagus! Ayo berlatih lagi supaya makin jago!":"Jangan menyerah! Ingat: panjang = angka akhir − angka awal."}
+$("go").onclick=()=>{$("start").classList.add("hide");$("game").classList.remove("hide");i=0;score=0;right=0;load()};
+$("again").onclick=()=>{$("end").classList.add("hide");$("game").classList.remove("hide");i=0;score=0;right=0;load()};
+// ilustrasi halaman awal (skala 30 px per cm)
+(function(){const s=$("art");el("rect",{x:30,y:95,width:600,height:45,fill:"#ffe27a",stroke:"#d9a400","stroke-width":2},s);
+ for(let k=0;k<=20;k++){el("line",{x1:30+k*30,y1:95,x2:30+k*30,y2:95+(k%5==0?22:14),stroke:"#5b4600","stroke-width":2},s)}
+ drawObj(el("g",{},s),"pensil",30,240,95);drawObj(el("g",{},s),"penghapus",290,120,95);drawObj(el("g",{},s),"krayon",430,180,95)})();
+</script></body></html>
